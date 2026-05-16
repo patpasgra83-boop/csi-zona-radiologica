@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSI · Zona Radiològica</title>
+  <style>
+    :root{
+      --bg:#020617; --panel:rgba(255,255,255,.08); --panel2:rgba(255,255,255,.12);
+      --text:#f8fafc; --muted:#cbd5e1; --red:#ef4444; --green:#22c55e;
+      --yellow:#facc15; --amber:#f59e0b; --violet:#7c3aed; --lime:#65a30d;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:Arial, Helvetica, sans-serif; color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(239,68,68,.25), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(34,197,94,.16), transparent 34%),
+        var(--bg);
+      min-height:100vh;
+    }
+    .wrap{max-width:1180px;margin:auto;padding:28px}
+    .header{display:flex;gap:20px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;margin-bottom:24px}
+    .badge-top{display:inline-flex;align-items:center;gap:8px;background:rgba(239,68,68,.2);color:#fee2e2;border:1px solid rgba(252,165,165,.25);border-radius:999px;padding:8px 12px;font-size:14px}
+    h1{font-size:46px;line-height:1;margin:14px 0 8px;font-weight:900}
+    h2,h3{margin:0}
+    p{line-height:1.45}
+    .muted{color:var(--muted)}
+    .rank-card,.card{background:var(--panel);border:1px solid rgba(255,255,255,.12);border-radius:24px;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+    .rank-card{padding:18px;min-width:250px}
+    .inputBox{margin-top:16px;background:var(--panel);border:1px solid rgba(255,255,255,.12);padding:14px;border-radius:18px;max-width:430px}
+    label{font-size:12px;color:var(--muted);font-weight:bold}
+    input{
+      margin-top:8px;width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.15);
+      background:rgba(2,6,23,.75);color:white;padding:12px;outline:none
+    }
+    .grid{display:grid;grid-template-columns:1.6fr .9fr;gap:20px}
+    .units{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .unit{padding:20px;border-radius:24px;border:1px solid rgba(255,255,255,.15);box-shadow:0 18px 40px rgba(0,0,0,.25)}
+    .unit.locked{opacity:.55}
+    .u6{background:linear-gradient(135deg,#78350f,#c2410c)}
+    .u7{background:linear-gradient(135deg,#365314,#15803d)}
+    .u8{background:linear-gradient(135deg,#3b0764,#7c3aed)}
+    .unit-head{display:flex;justify-content:space-between;gap:12px}
+    .unit small{color:rgba(255,255,255,.72)}
+    .ra{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:12px;font-size:12px;color:rgba(255,255,255,.82)}
+    button{
+      border:0;border-radius:16px;padding:12px 16px;font-weight:800;cursor:pointer;
+      background:white;color:#020617;transition:.2s transform,.2s opacity,.2s background
+    }
+    button:hover{transform:translateY(-1px)}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .secondary{background:#e2e8f0;color:#020617}
+    .danger{background:#fee2e2;color:#991b1b}
+    .side{display:flex;flex-direction:column;gap:16px}
+    .card{padding:18px}
+    .redCard{background:rgba(239,68,68,.12);border-color:rgba(252,165,165,.22)}
+    .badge-item,.report-item,.log-item,.criterion{padding:12px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);margin-top:8px;font-size:13px}
+    .badge-item.lock{color:#64748b}
+    .badge-item.unlock{background:rgba(250,204,21,.16);color:#fef9c3;border-color:rgba(250,204,21,.3)}
+    .report-ok{background:rgba(34,197,94,.14);color:#dcfce7;border-color:rgba(34,197,94,.25)}
+    .report-bad{background:rgba(239,68,68,.14);color:#fee2e2;border-color:rgba(239,68,68,.25)}
+    .report-none{color:#94a3b8}
+    .game{display:grid;grid-template-columns:1.4fr .8fr;gap:20px}
+    .game-panel{padding:28px;border-radius:28px;border:1px solid rgba(255,255,255,.14);box-shadow:0 22px 60px rgba(0,0,0,.3)}
+    .progress{height:12px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden}
+    .progress div{height:100%;background:white;border-radius:999px}
+    .question-box{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:22px;margin:20px 0}
+    .ce-pill{display:inline-block;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:bold;margin-bottom:12px}
+    .options{display:grid;gap:10px}
+    .option{width:100%;text-align:left;background:rgba(255,255,255,.10);color:white;border:1px solid rgba(255,255,255,.12)}
+    .option.correct{background:rgba(34,197,94,.25);border-color:rgba(134,239,172,.6)}
+    .option.wrong{background:rgba(239,68,68,.25);border-color:rgba(252,165,165,.6)}
+    .feedback{margin-top:18px;background:white;color:#020617;border-radius:24px;padding:18px}
+    .incident{margin-top:14px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:18px;padding:14px}
+    .success{margin-top:14px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:18px;padding:14px}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .stat{background:rgba(255,255,255,.08);border-radius:18px;padding:14px}
+    .stat b{font-size:26px}
+    .center{text-align:center}
+    .hidden{display:none}
+    .scroll{max-height:310px;overflow:auto;padding-right:4px}
+    .hearts{font-size:24px;letter-spacing:4px}
+    .certificate{border:1px solid rgba(250,204,21,.32);background:rgba(250,204,21,.11);padding:22px;border-radius:24px;text-align:center;margin-top:18px}
+    @media(max-width:900px){.grid,.game{grid-template-columns:1fr}.units{grid-template-columns:1fr}h1{font-size:36px}.wrap{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <div>
+        <div class="badge-top">🚨 CSI Radiològic · Unitat d’investigació hospitalària</div>
+        <h1>CSI · Zona Radiològica</h1>
+        <p class="muted">Converteix-te en investigador/a radiològic/a. Cada decisió pot evitar una sobreexposició, una contaminació o una fallada crítica de qualitat.</p>
+        <div class="inputBox">
+          <label>Expedient de l’alumne/a o equip</label>
+          <input id="studentName" value="Alumne/a CSI" oninput="updateStudentName()" />
+        </div>
+      </div>
+      <div class="rank-card">
+        <p class="muted">Rang actual</p>
+        <h3 id="rankName">Aprenent CSI</h3>
+        <p><strong id="scoreHeader">0</strong> punts</p>
+      </div>
+    </header>
+
+    <section id="homeScreen" class="grid">
+      <div>
+        <div id="unitsContainer" class="units"></div>
+        <div id="certificate" class="certificate hidden">
+          <h2>🏆 Certificat simbòlic: Responsable CSI Radiològic</h2>
+          <p id="certificateText" class="muted"></p>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>📁 Expedient CSI</h3>
+          <p class="muted"><strong>Alumne/a o equip:</strong> <span id="studentDisplay">Alumne/a CSI</span></p>
+          <p class="muted"><strong>Evidències registrades:</strong> <span id="evidenceCount">0</span></p>
+          <p class="muted"><strong>Insígnies:</strong> <span id="badgeCount">0/5</span></p>
+        </div>
+
+        <div class="card redCard">
+          <h3>⚠️ Mode CSI</h3>
+          <p class="muted">Cada error activa una conseqüència realista: contaminació, sobreexposició o fallada de qualitat.</p>
+          <button onclick="toggleAudio()" id="audioBtn">🔈 Activar música i efectes</button>
+        </div>
+
+        <div class="card">
+          <h3>🏅 Insígnies</h3>
+          <div id="badgesContainer"></div>
+        </div>
+
+        <div class="card">
+          <h3>📋 Informe automàtic</h3>
+          <div id="reportContainer" class="scroll"></div>
+        </div>
+
+        <div class="card">
+          <h3>🧾 Registre de missió</h3>
+          <div id="logContainer"><p class="muted">Encara no hi ha activitat.</p></div>
+        </div>
+
+        <button class="secondary" onclick="resetAll()">↻ Reiniciar partida</button>
+      </aside>
+    </section>
+
+    <section id="gameScreen" class="game hidden">
+      <div id="gamePanel" class="game-panel">
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <p class="muted" id="questionCounter"></p>
+            <h2 id="gameTitle"></h2>
+            <p class="muted" id="gameRA"></p>
+          </div>
+          <div class="hearts" id="hearts"></div>
+        </div>
+
+        <div class="progress"><div id="progressBar"></div></div>
+
+        <div class="question-box">
+          <div class="ce-pill" id="cePill"></div>
+          <h2 id="questionText"></h2>
+        </div>
+
+        <div id="optionsContainer" class="options"></div>
+        <div id="feedbackContainer"></div>
+      </div>
+
+      <aside class="side">
+        <div class="card">
+          <h3>📡 Centre de comandament CSI</h3>
+          <div class="stats">
+            <div class="stat"><p class="muted">Credibilitat CSI</p><b id="scoreStat">0</b></div>
+            <div class="stat"><p class="muted">Ratxa</p><b id="streakStat">0</b></div>
+            <div class="stat"><p class="muted">Zones segures</p><b id="completedStat">0/3</b></div>
+            <div class="stat"><p class="muted">Vides</p><b id="livesStat">3</b></div>
+          </div>
+          <br />
+          <button class="secondary" onclick="showHome()">Tornar al mapa</button>
+        </div>
+
+        <div class="card">
+          <h3>📌 Criteris d’avaluació del cas</h3>
+          <div id="criteriaPanel" class="scroll"></div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="completeScreen" class="card center hidden">
+      <h1>🏆 Situació superada</h1>
+      <p class="muted">Has desbloquejat la següent zona de la missió. L’expedient ha sigut actualitzat.</p>
+      <div class="card" style="max-width:620px;margin:20px auto;text-align:left">
+        <h3>📁 Expedient actualitzat</h3>
+        <p class="muted">Alumne/a o equip: <strong id="completeStudent"></strong></p>
+        <p class="muted">Evidències acumulades: <strong id="completeEvidence"></strong></p>
+        <p class="muted">Insígnies aconseguides: <strong id="completeBadges"></strong></p>
+      </div>
+      <button onclick="showHome()">Tornar al mapa</button>
+      <button class="secondary" id="nextUnitBtn" onclick="nextUnit()">Següent situació</button>
+    </section>
+
+    <section id="failedScreen" class="card center hidden">
+      <h1>❌ Missió en pausa</h1>
+      <p class="muted">S’han esgotat les vides. Repeteix la situació i usa les explicacions com a pistes d’estudi.</p>
+      <button onclick="startUnit(currentUnitId)">Reintentar situació</button>
+      <button class="secondary" onclick="showHome()">Tornar al mapa</button>
+    </section>
+  </div>
+
+<script>
+const EVALUATION_CRITERIA = {
+  6: [
+    "RA3.a · S’ha definit l’objectiu de la protecció radiològica.",
+    "RA3.b · S’ha diferenciat entre pràctica i intervenció.",
+    "RA3.c · S’han definit els diferents tipus d’exposicions.",
+    "RA3.d · S’han descrit els principis sobre els quals es dona suport a la protecció radiològica.",
+    "RA3.e · S’han establit les mesures bàsiques de protecció radiològica.",
+    "RA3.f · S’ha establit la classificació i els límits de la dosi en funció del risc d’exposició a la radiació.",
+    "RA3.g · S’han classificat els llocs de treball i se n’ha fet la senyalització."
+  ],
+  7: [
+    "RA5.a · S’han definit les característiques dels residus radioactius.",
+    "RA5.b · S’han classificat els residus radioactius.",
+    "RA5.c · S’han justificat les diferents opcions de gestió del material radioactiu.",
+    "RA5.d · S’han identificat els riscos del transport de material radioactiu.",
+    "RA5.e · S’han classificat els embalums radioactius i la seua senyalització.",
+    "RA5.f · S’ha definit la documentació requerida per a l’eliminació de residus.",
+    "RA5.g · S’han descrit les normes de gestió del material radioactiu."
+  ],
+  8: [
+    "RA6.a · S’han interpretat els aspectes inclosos en el programa de garantia de qualitat segons la mena d’instal·lació.",
+    "RA6.b · S’ha interpretat la normativa espanyola sobre qualitat específica per a cada instal·lació.",
+    "RA6.c · S’han descrit els procediments del control de qualitat en medicina nuclear, radioteràpia i radiodiagnòstic.",
+    "RA6.d · S’han identificat els protocols de qualitat en radiodiagnòstic i en instal·lacions radioactives.",
+    "RA6.e · S’ha justificat l’optimització dels procediments diagnòstics i terapèutics.",
+    "RA6.f · S’han definit les mesures adoptades en els pacients per a evitar riscos d’irradiació i contaminació."
+  ]
+};
+
+const UNITS = [
+  {
+    id: 6, css:"u6", title:"SA6 · Protocols de protecció general i radiologia operacional",
+    ra:"RA3 · Aplica els protocols de protecció radiològica operacional, basant-se en els criteris generals de protecció i tipus d’exposicions.",
+    badge:"Protecció operacional", challenge:"Investiga una possible exposició innecessària en una zona radiològica.",
+    questions:[
+      {ce:"RA3.a", q:"Quin és l’objectiu principal de la protecció radiològica en un servei hospitalari?", options:["Minimitzar els riscos de les radiacions ionitzants en pacients, professionals i públic","Augmentar el nombre d’exploracions","Eliminar els controls de qualitat","Substituir el diagnòstic mèdic"], answer:0, explanation:"La protecció radiològica pretén prevenir o reduir els efectes perjudicials de les radiacions ionitzants."},
+      {ce:"RA3.b", q:"Quina diferència existeix entre pràctica i intervenció?", options:["La pràctica és un ús planificat de radiacions; la intervenció actua davant exposicions existents o accidentals","Són exactament el mateix","La intervenció només es dona en veterinària","La pràctica elimina qualsevol risc radiològic"], answer:0, explanation:"Les pràctiques són activitats regulades amb radiació; les intervencions responen a situacions d’exposició ja existents."},
+      {ce:"RA3.c", q:"Quin tipus d’exposició afecta el personal sanitari durant la seua activitat laboral?", options:["Exposició ocupacional","Exposició domèstica","Exposició recreativa","Exposició alimentària"], answer:0, explanation:"L’exposició ocupacional és la que rep el personal com a conseqüència del seu treball."},
+      {ce:"RA3.d", q:"Quins són els principis bàsics de la protecció radiològica?", options:["Justificació, optimització i limitació de dosis","Rapidesa, repetició i improvisació","Contrast, brillantor i soroll","Pressió, temperatura i volum"], answer:0, explanation:"La protecció radiològica es fonamenta en justificar l’exposició, optimitzar-la i respectar límits de dosi quan siguen aplicables."},
+      {ce:"RA3.e", q:"Quines són les tres mesures bàsiques de protecció davant una font externa?", options:["Temps, distància i blindatge","Soroll, temperatura i pressió","Color, forma i grandària","Velocitat, massa i acceleració"], answer:0, explanation:"Reduir temps, augmentar distància i usar blindatge disminueix la dosi rebuda."},
+      {ce:"RA3.f", q:"Per què es classifiquen els treballadors exposats segons el risc?", options:["Per aplicar vigilància, límits i mesures de protecció adequades","Per eliminar el dosímetre","Per permetre sempre l’accés lliure","Per evitar la formació"], answer:0, explanation:"La classificació permet adaptar el control dosimètric, la vigilància mèdica i les condicions de treball."},
+      {ce:"RA3.g", q:"La classificació i senyalització dels llocs de treball serveix per a:", options:["Controlar l’accés i aplicar normes segons el risc radiològic","Decorar el servei","Eliminar protocols","Substituir el blindatge"], answer:0, explanation:"Les zones vigilades i controlades han d’estar correctament identificades i senyalitzades."}
+    ]
+  },
+  {
+    id: 7, css:"u7", title:"SA7 · Gestió del material radioactiu",
+    ra:"RA5 · Aplica procediments de gestió del material radioactiu, i associa els protocols operatius a la mena d’instal·lació.",
+    badge:"Material radioactiu", challenge:"Investiga una incidència en recepció, transport o eliminació de material radioactiu.",
+    questions:[
+      {ce:"RA5.a", q:"Quina característica defineix principalment un residu radioactiu?", options:["Conté radionúclids amb activitat que requereix control","És qualsevol material reutilitzable","Només genera risc químic","No necessita vigilància"], answer:0, explanation:"Els residus radioactius contenen radionúclids i exigeixen control, registre i gestió específica."},
+      {ce:"RA5.b", q:"Els residus radioactius es classifiquen segons:", options:["Activitat, període de semidesintegració i característiques del residu","Color del contenidor","Mida de la sala","Nombre de treballadors"], answer:0, explanation:"La classificació depén del radionúclid, activitat, vida mitjana i forma física o biològica."},
+      {ce:"RA5.c", q:"Per què cal justificar l’opció de gestió del material radioactiu?", options:["Per minimitzar riscos i garantir una gestió segura","Per evitar registres","Per augmentar l’exposició","Per eliminar la traçabilitat"], answer:0, explanation:"La gestió correcta protegeix personal, pacients, públic i medi ambient."},
+      {ce:"RA5.d", q:"Quin risc és propi del transport de material radioactiu?", options:["Contaminació o irradiació accidental","Pèrdua de color de l’embalatge","Soroll ambiental","Baixa humitat"], answer:0, explanation:"El transport exigeix embalatge, senyalització i documentació per evitar exposicions o contaminacions."},
+      {ce:"RA5.e", q:"La senyalització dels embalums radioactius serveix per a:", options:["Identificar el nivell de risc radiològic","Fer més atractiu el paquet","Evitar controls","Eliminar el protocol"], answer:0, explanation:"Els embalums han d’estar classificats i senyalitzats segons les normes de transport."},
+      {ce:"RA5.f", q:"Quina documentació és necessària per eliminar residus radioactius?", options:["Registres, identificació del residu i traçabilitat","Només una autorització verbal","Cap document si és poc volum","Una fotografia del contenidor"], answer:0, explanation:"La documentació permet seguir el residu i demostrar el compliment normatiu."},
+      {ce:"RA5.g", q:"Una norma bàsica de gestió del material radioactiu és:", options:["Registrar, identificar, emmagatzemar i manipular segons protocol","Manipular sense protecció","Guardar-lo sense etiqueta","Eliminar-lo com a residu comú"], answer:0, explanation:"La gestió exigeix normes clares de recepció, ús, emmagatzematge, transport intern i eliminació."}
+    ]
+  },
+  {
+    id: 8, css:"u8", title:"SA8 · Garantia de qualitat",
+    ra:"RA6 · Defineix accions per a l’aplicació del pla de garantia de qualitat, i el relaciona amb cada àrea i tipus d’instal·lació radioactiva.",
+    badge:"Qualitat i seguretat", challenge:"Investiga una fallada de qualitat que podria afectar imatge, dosi o seguretat del pacient.",
+    questions:[
+      {ce:"RA6.a", q:"El programa de garantia de qualitat ha d’adaptar-se segons:", options:["La mena d’instal·lació i els procediments realitzats","El color de la sala","El torn del personal","La marca dels uniformes"], answer:0, explanation:"Cada instal·lació té equips, riscos i controls específics."},
+      {ce:"RA6.b", q:"Interpretar la normativa espanyola sobre qualitat implica:", options:["Aplicar requisits específics segons instal·lació","Ignorar els registres","Fer sempre el mateix control","Evitar auditoria"], answer:0, explanation:"La normativa orienta controls, responsabilitats, documentació i criteris d’acceptació."},
+      {ce:"RA6.c", q:"Els procediments de control de qualitat en medicina nuclear, radioteràpia i radiodiagnòstic són:", options:["Específics segons equip, risc i finalitat clínica","Idèntics en tots els serveis","Només administratius","Opcionalment verbals"], answer:0, explanation:"Cada àrea necessita proves i controls adaptats al seu ús clínic i risc."},
+      {ce:"RA6.d", q:"Els protocols de qualitat en radiodiagnòstic i instal·lacions radioactives permeten:", options:["Normalitzar actuacions i detectar desviacions","Eliminar manteniments","Evitar registres","Treballar sense criteris"], answer:0, explanation:"Els protocols faciliten actuacions coherents, segures i auditables."},
+      {ce:"RA6.e", q:"Justificar l’optimització dels procediments significa:", options:["Aconseguir qualitat diagnòstica o terapèutica amb la menor exposició raonable","Reduir qualitat sempre","Repetir proves sense motiu","Augmentar dosis per defecte"], answer:0, explanation:"Optimitzar és equilibrar benefici clínic, qualitat i reducció de risc."},
+      {ce:"RA6.f", q:"Una mesura per evitar riscos d’irradiació i contaminació en pacients és:", options:["Identificació correcta, protocol adequat, instruccions i control de contaminació","No informar mai","No revisar la indicació","Ignorar residus"], answer:0, explanation:"El pacient ha d’estar identificat, informat i protegit segons el procediment i el tipus d’instal·lació."}
+    ]
+  }
+];
+
+const CSI_EVENTS = {
+  6:{failTitle:"SOBREEXPOSICIÓ OPERACIONAL", failText:"Una decisió incorrecta pot provocar una dosi innecessària al personal o al pacient.", consequence:"Conseqüència: investigació de l’incident i revisió urgent dels protocols ALARA."},
+  7:{failTitle:"CONTAMINACIÓ RADIOACTIVA", failText:"Una mala gestió del material radioactiu pot contaminar superfícies, persones o zones de treball.", consequence:"Conseqüència: delimitació, descontaminació, registre i comunicació de la incidència."},
+  8:{failTitle:"FALLADA EN GARANTIA DE QUALITAT", failText:"Una desviació no detectada pot afectar la qualitat de la imatge, la dosi o la seguretat del pacient.", consequence:"Conseqüència: suspensió temporal del procediment i revisió tècnica obligatòria."}
+};
+
+const ACHIEVEMENTS = [
+  {id:"ra3", title:"Insígnia RA3 · Protecció operacional", description:"Ha resolt casos de protecció radiològica operacional.", unitId:6},
+  {id:"ra5", title:"Insígnia RA5 · Gestió radioactiva", description:"Ha aplicat criteris de gestió del material radioactiu.", unitId:7},
+  {id:"ra6", title:"Insígnia RA6 · Garantia de qualitat", description:"Ha interpretat accions del pla de garantia de qualitat.", unitId:8},
+  {id:"perfect", title:"Insígnia especial · Cas sense incidències", description:"Ha completat una situació sense perdre cap vida."},
+  {id:"master", title:"Insígnia final · Responsable CSI Radiològic", description:"Ha completat totes les situacions d’aprenentatge."}
+];
+
+let state = {
+  screen:"home", studentName:"Alumne/a CSI", score:0, lives:3, streak:0,
+  completedUnits:[], earnedBadges:[], evidence:[], log:[],
+  currentUnitId:6, questionIndex:0, selected:null, answered:false,
+  currentQuestion:null, shuffledOptions:[], audio:false
+};
+let currentUnitId = 6;
+
+function $(id){return document.getElementById(id)}
+function getUnit(id){return UNITS.find(u=>u.id===id) || UNITS[0]}
+function shuffle(arr){const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]} return a}
+function hideAll(){["homeScreen","gameScreen","completeScreen","failedScreen"].forEach(id=>$(id).classList.add("hidden"))}
+
+function rankName(){
+  if(state.score>=1200) return "Cap d’unitat CSI";
+  if(state.score>=700) return "Especialista ALARA";
+  if(state.score>=300) return "Tècnic/a en investigació";
+  return "Aprenent CSI";
+}
+
+function updateStudentName(){
+  state.studentName = $("studentName").value || "Alumne/a CSI";
+  renderAll();
+}
+
+function toggleAudio(){
+  state.audio=!state.audio;
+  $("audioBtn").textContent = state.audio ? "🔊 Música i alertes activades" : "🔈 Activar música i efectes";
+  if(state.audio) playTone("success");
+}
+
+function playTone(type){
+  if(!state.audio) return;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if(!Ctx) return;
+  const ctx = new Ctx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.frequency.value = type==="success" ? 620 : 180;
+  gain.gain.value = type==="success" ? .05 : .08;
+  osc.start(); osc.stop(ctx.currentTime+.18);
+}
+
+function awardBadge(id){
+  if(!state.earnedBadges.includes(id)) state.earnedBadges.push(id);
+}
+
+function renderUnits(){
+  const unlockedIndex = Math.min(state.completedUnits.length, UNITS.length-1);
+  const unlockedId = UNITS[unlockedIndex].id;
+  $("unitsContainer").innerHTML = UNITS.map(unit=>{
+    const done = state.completedUnits.includes(unit.id);
+    const unlocked = unit.id <= unlockedId || done;
+    return `
+      <div class="unit ${unit.css} ${unlocked ? "" : "locked"}">
+        <div class="unit-head">
+          <div>
+            <small>${unit.badge}</small>
+            <h2>${unit.title}</h2>
+          </div>
+          <div style="font-size:24px">${done ? "✅" : unlocked ? "⚡" : "🔒"}</div>
+        </div>
+        <p>${unit.challenge}</p>
+        <div class="ra">${unit.ra}</div>
+        <br/>
+        <button ${unlocked ? "" : "disabled"} onclick="startUnit(${unit.id})">${done ? "Repetir cas" : unlocked ? "Iniciar investigació" : "Bloquejat"}</button>
+      </div>
+    `;
+  }).join("");
+}
+
+function evaluationReport(){
+  return Object.values(EVALUATION_CRITERIA).flat().map(criterion=>{
+    const code = criterion.split(" · ")[0];
+    const attempts = state.evidence.filter(e=>e.ce===code);
+    const correct = attempts.filter(e=>e.correct).length;
+    const incorrect = attempts.filter(e=>!e.correct).length;
+    const status = correct>0 ? "Evidenciat" : incorrect>0 ? "En reforç" : "No treballat";
+    return {code, criterion, correct, incorrect, status};
+  });
+}
+
+function renderReport(){
+  $("reportContainer").innerHTML = evaluationReport().map(row=>{
+    const cls = row.status==="Evidenciat" ? "report-ok" : row.status==="En reforç" ? "report-bad" : "report-none";
+    return `<div class="report-item ${cls}">
+      <strong>${row.code} · ${row.status}</strong>
+      <div>${row.criterion.replace(row.code+" · ","")}</div>
+      <small>Correctes: ${row.correct} · Errors: ${row.incorrect}</small>
+    </div>`;
+  }).join("");
+}
+
+function renderBadges(){
+  $("badgesContainer").innerHTML = ACHIEVEMENTS.map(b=>{
+    const unlocked = state.earnedBadges.includes(b.id);
+    return `<div class="badge-item ${unlocked ? "unlock" : "lock"}">
+      <strong>${unlocked ? "🏅" : "🔒"} ${b.title}</strong>
+      <div>${b.description}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderLog(){
+  $("logContainer").innerHTML = state.log.length
+    ? state.log.map(item=>`<div class="log-item">${item}</div>`).join("")
+    : `<p class="muted">Encara no hi ha activitat.</p>`;
+}
+
+function renderAll(){
+  $("studentDisplay").textContent = state.studentName;
+  $("evidenceCount").textContent = state.evidence.length;
+  $("badgeCount").textContent = `${state.earnedBadges.length}/${ACHIEVEMENTS.length}`;
+  $("rankName").textContent = rankName();
+  $("scoreHeader").textContent = state.score;
+  renderUnits(); renderReport(); renderBadges(); renderLog();
+
+  if(state.completedUnits.length===UNITS.length){
+    $("certificate").classList.remove("hidden");
+    $("certificateText").textContent = `Totes les situacions completades. L’expedient de ${state.studentName} ja conté evidències, criteris treballats i insígnies aconseguides.`;
+  } else {
+    $("certificate").classList.add("hidden");
+  }
+}
+
+function showHome(){
+  hideAll();
+  $("homeScreen").classList.remove("hidden");
+  state.screen="home";
+  renderAll();
+}
+
+function startUnit(id){
+  currentUnitId = id;
+  state.currentUnitId = id;
+  state.questionIndex=0;
+  state.lives=3;
+  state.streak=0;
+  state.selected=null;
+  state.answered=false;
+  makeQuestion();
+  hideAll();
+  $("gameScreen").classList.remove("hidden");
+  renderGame();
+}
+
+function makeQuestion(){
+  const unit = getUnit(state.currentUnitId);
+  state.currentQuestion = unit.questions[state.questionIndex];
+  state.shuffledOptions = shuffle(state.currentQuestion.options.map((text,index)=>({text,index})));
+}
+
+function renderGame(){
+  const unit = getUnit(state.currentUnitId);
+  $("gamePanel").className = `game-panel ${unit.css}`;
+  $("questionCounter").textContent = `Repte ${state.questionIndex+1} de ${unit.questions.length}`;
+  $("gameTitle").textContent = unit.title;
+  $("gameRA").textContent = unit.ra;
+  $("hearts").textContent = "❤".repeat(state.lives) + "♡".repeat(3-state.lives);
+  $("progressBar").style.width = `${((state.questionIndex + (state.answered?1:0))/unit.questions.length)*100}%`;
+  $("cePill").textContent = `Criteri a evidenciar: ${state.currentQuestion.ce}`;
+  $("questionText").textContent = state.currentQuestion.q;
+  $("scoreStat").textContent = state.score;
+  $("streakStat").textContent = state.streak;
+  $("completedStat").textContent = `${state.completedUnits.length}/${UNITS.length}`;
+  $("livesStat").textContent = state.lives;
+
+  $("optionsContainer").innerHTML = state.shuffledOptions.map((opt,i)=>{
+    let cls = "";
+    if(state.answered && opt.index===state.currentQuestion.answer) cls="correct";
+    if(state.answered && state.selected && state.selected.index===opt.index && opt.index!==state.currentQuestion.answer) cls="wrong";
+    return `<button class="option ${cls}" onclick="answerQuestion(${i})"><strong>${String.fromCharCode(65+i)}.</strong> ${opt.text}</button>`;
+  }).join("");
+
+  $("criteriaPanel").innerHTML = EVALUATION_CRITERIA[unit.id].map(c=>{
+    const active = c.startsWith(state.currentQuestion.ce);
+    return `<div class="criterion" style="${active ? "background:rgba(250,204,21,.18);color:#fef3c7;border-color:rgba(250,204,21,.3)" : ""}">${c}</div>`;
+  }).join("");
+
+  renderFeedback();
+}
+
+function renderFeedback(){
+  if(!state.answered){ $("feedbackContainer").innerHTML=""; return; }
+  const unit = getUnit(state.currentUnitId);
+  const correct = state.selected.index===state.currentQuestion.answer;
+  let html = `<div class="feedback">
+    <h3>${correct ? "✅ CAS RESOLT" : "❌ INCIDENT DETECTAT"}</h3>
+    <p>${state.currentQuestion.explanation}</p>`;
+  if(correct){
+    html += `<div class="success"><strong>🛡️ Protocol correcte</strong><br/>La situació s’ha resolt sense risc radiològic i queda registrada com a evidència positiva.</div>`;
+  } else {
+    const ev = CSI_EVENTS[unit.id];
+    html += `<div class="incident">
+      <strong>☢️ ${ev.failTitle}</strong>
+      <p>${ev.failText}</p>
+      <p><strong>${ev.consequence}</strong></p>
+      <p><strong>Criteri no evidenciat:</strong> ${state.currentQuestion.ce}. Cal reobrir el cas i justificar la decisió correcta.</p>
+    </div>`;
+  }
+  html += `<br/><button onclick="nextQuestion()">Continuar investigació</button></div>`;
+  $("feedbackContainer").innerHTML = html;
+}
+
+function answerQuestion(i){
+  if(state.answered) return;
+  const opt = state.shuffledOptions[i];
+  const correct = opt.index === state.currentQuestion.answer;
+  state.selected = opt;
+  state.answered = true;
+  state.evidence.unshift({
+    ce:state.currentQuestion.ce,
+    unitId:state.currentUnitId,
+    question:state.currentQuestion.q,
+    correct,
+    moment:new Date().toLocaleString()
+  });
+
+  if(correct){
+    playTone("success");
+    const bonus = state.streak>=2 ? 20 : 0;
+    state.score += 100 + bonus;
+    state.streak += 1;
+    state.log.unshift(`CAS RESOLT · ${state.currentQuestion.ce}`);
+  } else {
+    playTone("fail");
+    state.lives = Math.max(0,state.lives-1);
+    state.streak = 0;
+    state.log.unshift(`INCIDENT · ${state.currentQuestion.ce}`);
+  }
+  state.log = state.log.slice(0,5);
+  renderGame();
+  renderAll();
+}
+
+function nextQuestion(){
+  const unit = getUnit(state.currentUnitId);
+  const last = state.questionIndex >= unit.questions.length-1;
+  if(!last && state.lives>0){
+    state.questionIndex += 1;
+    state.answered=false;
+    state.selected=null;
+    makeQuestion();
+    renderGame();
+    return;
+  }
+  if(state.lives>0){
+    if(!state.completedUnits.includes(unit.id)){
+      state.completedUnits.push(unit.id);
+      const b = ACHIEVEMENTS.find(x=>x.unitId===unit.id);
+      if(b) awardBadge(b.id);
+      if(state.lives===3) awardBadge("perfect");
+      if(state.completedUnits.length===UNITS.length) awardBadge("master");
+    }
+    $("completeStudent").textContent = state.studentName;
+    $("completeEvidence").textContent = state.evidence.length;
+    $("completeBadges").textContent = state.earnedBadges.length;
+    $("nextUnitBtn").style.display = unit.id < 8 ? "inline-block" : "none";
+    hideAll(); $("completeScreen").classList.remove("hidden");
+  } else {
+    hideAll(); $("failedScreen").classList.remove("hidden");
+  }
+  renderAll();
+}
+
+function nextUnit(){
+  const next = state.currentUnitId + 1;
+  if(next<=8) startUnit(next);
+}
+
+function resetAll(){
+  state = {
+    screen:"home", studentName:"Alumne/a CSI", score:0, lives:3, streak:0,
+    completedUnits:[], earnedBadges:[], evidence:[], log:[],
+    currentUnitId:6, questionIndex:0, selected:null, answered:false,
+    currentQuestion:null, shuffledOptions:[], audio:state.audio
+  };
+  currentUnitId=6;
+  $("studentName").value = state.studentName;
+  showHome();
+}
+
+renderAll();
+</script>
+</body>
+</html>
